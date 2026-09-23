@@ -17,7 +17,7 @@ Harness 100의 데이터 관련 하네스를 참고하여
 
 | 순서 | 주제 | 상태 |
 |---:|---|---|
-| 1 | 19 Database Architect | 진행 예정 |
+| 1 | 19 Database Architect | 진행 중 |
 | 2 | 37 Web Scraper | 진행 예정 |
 | 3 | 27 Data Pipeline | 진행 예정 |
 | 4 | 34 Data Migration | 진행 예정 |
