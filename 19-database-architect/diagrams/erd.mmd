@@ -1,3 +1,74 @@
 erDiagram
-    %% 2단계 실습: docs/00-requirements.md를 근거로 엔티티 관계를 직접 작성한다.
-    %% 관계를 추가할 때 카디널리티와 선택/필수 여부를 확인한다.
+    USERS o|--o{ ORDERS : places
+    ORDERS ||--|{ ORDER_ITEMS : contains
+    PRODUCTS ||--o{ ORDER_ITEMS : referenced_by
+    ORDERS ||--o{ PAYMENTS : has
+    ORDER_ITEMS ||--o| REVIEWS : receives
+    ORDERS ||--o{ LEGAL_RETENTION_RECORDS : retains
+
+    USERS {
+        BIGINT id PK
+        VARCHAR email UK
+        VARCHAR name
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    PRODUCTS {
+        BIGINT id PK
+        VARCHAR name
+        NUMERIC price
+        INTEGER stock_quantity
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    ORDERS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR status
+        NUMERIC total_amount
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    ORDER_ITEMS {
+        BIGINT id PK
+        BIGINT order_id FK
+        BIGINT product_id FK
+        VARCHAR product_name
+        NUMERIC unit_price
+        INTEGER quantity
+        TIMESTAMPTZ created_at
+    }
+
+    PAYMENTS {
+        BIGINT id PK
+        BIGINT order_id FK
+        VARCHAR transaction_id UK
+        VARCHAR method
+        NUMERIC amount
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    REVIEWS {
+        BIGINT id PK
+        BIGINT order_item_id FK,UK
+        SMALLINT rating
+        TEXT content
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    LEGAL_RETENTION_RECORDS {
+        BIGINT id PK
+        BIGINT order_id FK "composite unique pair"
+        VARCHAR retention_category "composite unique pair"
+        BYTEA retained_data_encrypted
+        TIMESTAMPTZ retention_until
+        TIMESTAMPTZ created_at
+    }
