@@ -33,8 +33,8 @@
 - [v] 1단계: 요구사항과 주요 액세스 패턴 정리
 - [v] 2단계: 엔티티, 관계, 정규화 및 ERD 설계
 - [v] 3단계: 적용·롤백 마이그레이션 작성
-- [ ] 4단계: 샘플 데이터와 스키마 제약조건 테스트
-- [ ] 5단계: `EXPLAIN ANALYZE` 기반 성능 비교
+- [v] 4단계: 샘플 데이터와 스키마 제약조건 테스트
+- [v] 5단계: `EXPLAIN ANALYZE` 기반 성능 비교
 - [ ] 6단계: 보안 검토
 - [ ] 7단계: 통합 리뷰와 회고
 
@@ -44,6 +44,10 @@
 19-database-architect/
 ├── README.md
 ├── docker-compose.yml
+├── benchmarks/
+│   ├── generate-performance-data.sql
+│   ├── cleanup-performance-data.sql
+│   └── measure_performance.py
 ├── docs/
 │   ├── 00-requirements.md
 │   ├── 01-data-model.md
@@ -54,8 +58,13 @@
 ├── diagrams/erd.mmd
 ├── migrations/
 │   ├── 001_initial_up.sql
-│   └── 001_initial_down.sql
+│   ├── 001_initial_down.sql
+│   ├── 002_performance_indexes_up.sql
+│   └── 002_performance_indexes_down.sql
 ├── queries/
+│   ├── order-history.sql
+│   ├── order-history-hot-user.sql
+│   └── product-search.sql
 ├── seeds/sample-data.sql
 └── tests/schema-tests.sql
 ```
