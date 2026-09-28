@@ -35,7 +35,7 @@
 - [v] 3단계: 적용·롤백 마이그레이션 작성
 - [v] 4단계: 샘플 데이터와 스키마 제약조건 테스트
 - [v] 5단계: `EXPLAIN ANALYZE` 기반 성능 비교
-- [ ] 6단계: 보안 검토
+- [v] 6단계: 보안 검토
 - [ ] 7단계: 통합 리뷰와 회고
 
 ## 디렉터리
@@ -60,13 +60,17 @@
 │   ├── 001_initial_up.sql
 │   ├── 001_initial_down.sql
 │   ├── 002_performance_indexes_up.sql
-│   └── 002_performance_indexes_down.sql
+│   ├── 002_performance_indexes_down.sql
+│   ├── 003_security_roles_up.sql
+│   └── 003_security_roles_down.sql
 ├── queries/
 │   ├── order-history.sql
 │   ├── order-history-hot-user.sql
 │   └── product-search.sql
 ├── seeds/sample-data.sql
-└── tests/schema-tests.sql
+└── tests/
+    ├── schema-tests.sql
+    └── security-tests.sql
 ```
 
 ## 로컬 실행
