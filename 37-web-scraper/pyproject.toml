@@ -1,1 +1,16 @@
-# 1단계에서 Python 버전과 프로젝트 의존성을 정의합니다.
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-harness-web-scraper"
+version = "0.1.0"
+description = "A staged web scraping lab using Books to Scrape"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+    "Scrapy>=2.19,<3.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
