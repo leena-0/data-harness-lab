@@ -1,5 +1,10 @@
 """Scrapy settings for the web scraper lab."""
 
+from pathlib import Path
+
+
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+
 BOT_NAME = "web_scraper_lab"
 
 SPIDER_MODULES = ["web_scraper_lab.spiders"]
@@ -28,6 +33,12 @@ DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.retry.RetryMiddleware": None,
     "web_scraper_lab.middlewares.ExponentialBackoffRetryMiddleware": 550,
 }
+
+ITEM_PIPELINES = {
+    "web_scraper_lab.pipelines.SQLiteBookPipeline": 300,
+}
+BOOKS_DB_PATH = str(PROJECT_DIR / "data" / "processed" / "books.db")
+SQLITE_COMMIT_BATCH_SIZE = 100
 
 USER_AGENT = (
     "data-harness-lab/0.1 "
