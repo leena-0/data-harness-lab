@@ -23,6 +23,14 @@ EXPORT_MODULE_SPEC.loader.exec_module(EXPORT_MODULE)
 export_books = EXPORT_MODULE.export_books
 
 
+class RecordingStats:
+    def __init__(self) -> None:
+        self.values: dict[str, int] = {}
+
+    def inc_value(self, key: str, count: int = 1, start: int = 0) -> None:
+        self.values[key] = self.values.get(key, start) + count
+
+
 def make_book(upc: str, *, title: str = "A Light in the Attic") -> BookItem:
     return BookItem(
         upc=upc,
@@ -43,7 +51,12 @@ class SQLiteBookPipelineTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
         self.database_path = Path(self.temporary_directory.name) / "books.db"
-        self.pipeline = SQLiteBookPipeline(self.database_path, batch_size=2)
+        self.stats = RecordingStats()
+        self.pipeline = SQLiteBookPipeline(
+            self.database_path,
+            batch_size=2,
+            stats=self.stats,
+        )
         self.pipeline.open_spider()
 
     def tearDown(self) -> None:
@@ -59,6 +72,13 @@ class SQLiteBookPipelineTests(unittest.TestCase):
     def test_creates_schema_and_inserts_book(self) -> None:
         self.pipeline.process_item(make_book("upc-1"))
         self.assertEqual(self.rows(), [("upc-1", "A Light in the Attic")])
+
+    def test_counts_only_items_in_successful_commits(self) -> None:
+        self.pipeline.process_item(make_book("upc-1"))
+        self.assertNotIn("books/db_items_stored", self.stats.values)
+
+        self.pipeline.process_item(make_book("upc-2"))
+        self.assertEqual(self.stats.values["books/db_items_stored"], 2)
 
     def test_upserts_same_upc_and_keeps_other_books(self) -> None:
         self.pipeline.process_item(make_book("upc-1"))

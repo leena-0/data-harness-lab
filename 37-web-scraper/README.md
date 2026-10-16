@@ -38,7 +38,7 @@
 - [v] 3단계: 크롤러와 페이지 순회 구현
 - [v] 4단계: 파서와 데이터 검증 구현
 - [v] 5단계: 저장, 중복 제거와 내보내기 구현
-- [ ] 6단계: 테스트, 재시도와 모니터링 구성
+- [v] 6단계: 테스트, 재시도와 모니터링 구성
 - [ ] 7단계: 통합 실행, 결과 검토와 회고
 
 ## 디렉터리
@@ -63,6 +63,7 @@
 ├── src/
 │   └── web_scraper_lab/
 │       ├── __init__.py
+│       ├── extensions.py
 │       ├── items.py
 │       ├── middlewares.py
 │       ├── pipelines.py
@@ -72,8 +73,11 @@
 │           └── books.py
 └── tests/
     ├── fixtures/
+    ├── test_crawler.py
+    ├── test_monitoring.py
     ├── test_parser.py
-    └── test_pipeline.py
+    ├── test_pipeline.py
+    └── test_retry.py
 ```
 
 각 파일은 단계별로 내용을 채우며, 완료 상태는 위 진행 순서에 반영합니다.

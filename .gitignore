@@ -68,6 +68,13 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Generated web scraper data
+/37-web-scraper/data/**/*.db
+/37-web-scraper/data/**/*.db-*
+/37-web-scraper/data/**/*.csv
+/37-web-scraper/data/**/crawl-stats.json
+/37-web-scraper/data/**/*.jsonl
+
 # Sphinx documentation
 docs/_build/
 

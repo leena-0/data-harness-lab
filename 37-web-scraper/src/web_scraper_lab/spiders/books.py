@@ -2,7 +2,7 @@
 
 from collections.abc import AsyncIterator, Callable, Iterable
 import re
-from typing import Any
+from typing import Any, NoReturn
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import scrapy
@@ -37,14 +37,14 @@ class BooksSpider(scrapy.Spider):
 
         cards = response.css("article.product_pod")
         if not cards:
-            raise CloseSpider("listing_products_missing")
+            self._stop("listing_products_missing")
 
         current_page, total_pages = self._parse_page_status(response)
         product_hrefs = response.css(
             "article.product_pod h3 a::attr(href)"
         ).getall()
         if len(product_hrefs) != len(cards):
-            raise CloseSpider("listing_product_links_incomplete")
+            self._stop("listing_product_links_incomplete")
 
         for href in product_hrefs:
             product_url = self._normalize_url(response.url, href)
@@ -63,11 +63,11 @@ class BooksSpider(scrapy.Spider):
         next_href = response.css("li.next a::attr(href)").get()
         if current_page < total_pages:
             if next_href is None:
-                raise CloseSpider("listing_next_link_missing")
+                self._stop("listing_next_link_missing")
 
             next_url = self._normalize_url(response.url, next_href)
             if next_url is None:
-                raise CloseSpider("listing_next_link_invalid")
+                self._stop("listing_next_link_invalid")
 
             yield self._request(
                 next_url,
@@ -75,7 +75,7 @@ class BooksSpider(scrapy.Spider):
                 page_kind="listing",
             )
         elif next_href is not None:
-            raise CloseSpider("listing_unexpected_next_link")
+            self._stop("listing_unexpected_next_link")
 
     def parse_product(self, response: TextResponse) -> Iterable[BookItem]:
         """Extract, normalize and validate one product detail page."""
@@ -114,7 +114,7 @@ class BooksSpider(scrapy.Spider):
             )
         except BookValidationError as error:
             self.crawler.stats.inc_value("books/detail_parse_failures")
-            self.logger.error(
+            self.logger.warning(
                 "Product validation failed for %s: %s",
                 response.url,
                 error,
@@ -129,14 +129,19 @@ class BooksSpider(scrapy.Spider):
         request = failure.request
         page_kind = request.meta.get("page_kind", "unknown")
         self.crawler.stats.inc_value(f"books/{page_kind}_request_failures")
-        self.logger.error(
+        if page_kind == "listing":
+            self.logger.error(
+                "Listing request failed after retries: %s (%s)",
+                request.url,
+                failure.getErrorMessage(),
+            )
+            raise CloseSpider("listing_request_failed")
+        self.logger.warning(
             "%s request failed after retries: %s (%s)",
             page_kind,
             request.url,
             failure.getErrorMessage(),
         )
-        if page_kind == "listing":
-            raise CloseSpider("listing_request_failed")
 
     def _request(
         self,
@@ -154,23 +159,26 @@ class BooksSpider(scrapy.Spider):
 
     def _raise_for_access_denial(self, response: Response) -> None:
         if response.status in self.handle_httpstatus_list:
-            raise CloseSpider(f"access_denied_{response.status}")
+            self._stop(f"access_denied_{response.status}")
 
-    @staticmethod
-    def _parse_page_status(response: TextResponse) -> tuple[int, int]:
+    def _parse_page_status(self, response: TextResponse) -> tuple[int, int]:
         page_status = response.css("li.current::text").get()
         if page_status is None:
-            raise CloseSpider("listing_page_status_missing")
+            self._stop("listing_page_status_missing")
 
         match = re.fullmatch(r"\s*Page\s+(\d+)\s+of\s+(\d+)\s*", page_status)
         if match is None:
-            raise CloseSpider("listing_page_status_invalid")
+            self._stop("listing_page_status_invalid")
 
         current_page, total_pages = map(int, match.groups())
         if current_page < 1 or total_pages < 1 or current_page > total_pages:
-            raise CloseSpider("listing_page_status_invalid")
+            self._stop("listing_page_status_invalid")
 
         return current_page, total_pages
+
+    def _stop(self, reason: str) -> NoReturn:
+        self.logger.error("Stopping crawl: %s", reason)
+        raise CloseSpider(reason)
 
     @classmethod
     def _normalize_url(cls, base_url: str, href: str) -> str | None:

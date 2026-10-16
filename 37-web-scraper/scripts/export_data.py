@@ -1,6 +1,7 @@
 """Export stored books from SQLite to a deterministic CSV file."""
 
 import argparse
+from contextlib import closing
 import csv
 import os
 from pathlib import Path
@@ -29,7 +30,7 @@ def export_books(database_path: Path, output_path: Path) -> int:
     temporary_path: Path | None = None
 
     try:
-        with sqlite3.connect(database_path) as connection:
+        with closing(sqlite3.connect(database_path)) as connection:
             rows = connection.execute(
                 f"SELECT {', '.join(COLUMNS)} FROM books ORDER BY upc"
             ).fetchall()

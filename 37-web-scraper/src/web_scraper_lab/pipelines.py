@@ -59,9 +59,15 @@ ON CONFLICT(upc) DO UPDATE SET
 class SQLiteBookPipeline:
     """Upsert books by UPC and commit them in bounded batches."""
 
-    def __init__(self, database_path: str | Path, batch_size: int = 100) -> None:
+    def __init__(
+        self,
+        database_path: str | Path,
+        batch_size: int = 100,
+        stats: Any = None,
+    ) -> None:
         self.database_path = Path(database_path)
         self.batch_size = batch_size
+        self.stats = stats
         self.connection: sqlite3.Connection | None = None
         self.pending_items = 0
 
@@ -70,6 +76,7 @@ class SQLiteBookPipeline:
         return cls(
             crawler.settings["BOOKS_DB_PATH"],
             crawler.settings.getint("SQLITE_COMMIT_BATCH_SIZE", 100),
+            crawler.stats,
         )
 
     def open_spider(self, spider: Any = None) -> None:
@@ -89,8 +96,7 @@ class SQLiteBookPipeline:
             )
             self.pending_items += 1
             if self.pending_items >= self.batch_size:
-                connection.commit()
-                self.pending_items = 0
+                self._commit_pending()
         except (KeyError, sqlite3.DatabaseError):
             connection.rollback()
             self.pending_items = 0
@@ -102,7 +108,7 @@ class SQLiteBookPipeline:
         if self.connection is None:
             return
         try:
-            self.connection.commit()
+            self._commit_pending()
         finally:
             self.connection.close()
             self.connection = None
@@ -112,3 +118,12 @@ class SQLiteBookPipeline:
         if self.connection is None:
             raise RuntimeError("SQLite pipeline is not open")
         return self.connection
+
+    def _commit_pending(self) -> None:
+        if self.pending_items == 0:
+            return
+        connection = self._require_connection()
+        connection.commit()
+        if self.stats is not None:
+            self.stats.inc_value("books/db_items_stored", self.pending_items)
+        self.pending_items = 0

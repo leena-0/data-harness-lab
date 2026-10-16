@@ -40,6 +40,12 @@ ITEM_PIPELINES = {
 BOOKS_DB_PATH = str(PROJECT_DIR / "data" / "processed" / "books.db")
 SQLITE_COMMIT_BATCH_SIZE = 100
 
+EXTENSIONS = {
+    "web_scraper_lab.extensions.CrawlMonitorExtension": 500,
+}
+CRAWL_STATS_PATH = str(PROJECT_DIR / "data" / "processed" / "crawl-stats.json")
+MIN_PARSE_SUCCESS_RATE = 0.95
+
 USER_AGENT = (
     "data-harness-lab/0.1 "
     "(+https://github.com/leena-0/data-harness-lab; educational scraper)"
